@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Spendora — Personal Finance Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+  <!-- Particle canvas -->
+  <canvas id="particle-canvas"></canvas>
+
+  <!-- Floating orbs background -->
+  <div class="bg-orbs" id="bg-orbs">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+    <div class="bg-orb orb-4"></div>
+    <div class="bg-orb orb-5"></div>
+  </div>
+
+  <!-- ── AUTH PAGE ──────────────────────────────────────────── -->
+  <div id="auth-page" class="auth-wrapper">
+    <div class="auth-card" id="auth-card">
+      <!-- Logo -->
+      <div class="auth-logo">
+        <div class="brand-dot"></div>
+        <span class="brand-name">Spendora</span>
+      </div>
+      <p class="auth-tagline">Personal Finance Tracker</p>
+
+      <h2 class="auth-title" id="auth-title">Welcome Back</h2>
+
+      <div class="auth-error hidden" id="auth-error"></div>
+
+      <div class="auth-fields" id="auth-fields">
+        <input id="auth-name" type="text"   placeholder="Full Name"      class="auth-input hidden"/>
+        <input id="auth-email" type="email" placeholder="Email Address"  class="auth-input"/>
+        <input id="auth-pass"  type="password" placeholder="Password"    class="auth-input"/>
+        <input id="auth-confirm-pass" type="password" placeholder="Confirm Password" class="auth-input hidden"/>
+      </div>
+
+      <button id="auth-submit" class="btn-primary btn-full ripple-btn">Sign In</button>
+
+      <p class="auth-switch">
+        Don't have an account?
+        <span id="auth-toggle" class="link-red">Sign Up</span>
+      </p>
+      <p class="auth-demo" id="auth-demo">
+        Demo: <span class="demo-creds">demo@spendora.app / demo123</span>
+      </p>
+    </div>
+  </div>
+
+  <!-- ── MAIN APP ───────────────────────────────────────────── -->
+  <div id="app" class="hidden">
+
+    <!-- NAVBAR -->
+    <nav id="navbar">
+      <div class="brand" id="nav-brand">
+        <div class="brand-dot"></div>
+        <span class="brand-name">Spendora</span>
+      </div>
+
+      <div class="desktop-nav" id="desktop-nav">
+        <button class="nav-link active" data-page="dashboard">Dashboard</button>
+        <button class="nav-link" data-page="expenses">Expenses</button>
+        <button class="nav-link" data-page="subs">Subscriptions</button>
+        <button class="nav-link" data-page="analytics">Analytics</button>
+        <button class="nav-link" data-page="about">About</button>
+        <button id="set-budget-btn" class="btn-outline-red">Set Budget</button>
+      </div>
+
+      <div class="nav-right">
+        <div class="alert-bell" id="nav-alert-bell" title="Alerts">
+          🔔
+          <span class="bell-badge hidden" id="bell-badge">0</span>
+        </div>
+        <div class="user-pill" id="user-pill">
+          <div class="avatar" id="nav-avatar">U</div>
+          <span class="username" id="nav-username">User</span>
+          <span class="chevron">▾</span>
+        </div>
+        <div class="user-menu hidden" id="user-menu">
+          <div class="user-menu-header">
+            <div class="um-label">Signed in as</div>
+            <div class="um-email" id="um-email"></div>
+          </div>
+          <button class="um-link" data-page="dashboard">Dashboard</button>
+          <button class="um-link" data-page="expenses">Expenses</button>
+          <button class="um-link" data-page="subs">Subscriptions</button>
+          <button class="um-link" data-page="analytics">Analytics</button>
+          <button class="um-link" data-page="about">About</button>
+          <div class="um-divider"></div>
+          <button id="logout-btn" class="um-link um-signout">Sign Out</button>
+        </div>
+
+        <!-- Mobile hamburger -->
+        <button class="hamburger" id="hamburger">☰</button>
+      </div>
+    </nav>
+
+    <!-- Mobile dropdown -->
+    <div class="mobile-menu hidden" id="mobile-menu">
+      <button class="mobile-link" data-page="dashboard">Dashboard</button>
+      <button class="mobile-link" data-page="expenses">Expenses</button>
+      <button class="mobile-link" data-page="subs">Subscriptions</button>
+      <button class="mobile-link" data-page="analytics">Analytics</button>
+      <button class="mobile-link" data-page="about">About</button>
+      <button id="mobile-budget-btn" class="mobile-link" style="color:#e74c3c">Set Budget</button>
+    </div>
+
+    <!-- ── DASHBOARD PAGE ──────────────────────────────── -->
+    <div id="page-dashboard" class="page page-container">
+      <!-- Greeting -->
+      <div class="greeting">
+        <h1 class="greeting-title">Good <span id="time-of-day">Morning</span>, <span class="red" id="greeting-name">User</span></h1>
+        <p class="greeting-sub" id="greeting-sub"></p>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="stat-grid" id="dash-stat-grid"></div>
+
+      <!-- Main grid: Calendar + Right panel -->
+      <div class="main-grid">
+        <!-- Calendar section -->
+        <div>
+          <div class="section-label red-label">Calendar</div>
+          <div id="calendar-widget"></div>
+
+          <!-- Selected day info -->
+          <div class="day-info" id="day-info">
+            <div class="day-info-label red-label" id="day-info-label">Today</div>
+            <div class="day-info-total" id="day-info-total">₹ 0</div>
+            <div class="day-info-sub" id="day-info-sub">0 expenses recorded</div>
+            <div id="day-donut-area"></div>
+          </div>
+        </div>
+
+        <!-- Right panel -->
+        <div class="right-panel">
+          <!-- Budget overview -->
+          <div class="panel-card">
+            <div class="panel-label">Budget Overview</div>
+            <div class="budget-bar-item" style="margin-bottom:16px">
+              <div class="bar-header">
+                <span class="bar-label">Budget Used</span>
+                <span class="bar-value" id="dash-budget-value">No budget set</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill blue-fill" id="dash-budget-bar"></div></div>
+              <div class="bar-sub" id="dash-budget-sub">Set a monthly budget to track spending</div>
+            </div>
+            <div class="budget-bar-item">
+              <div class="bar-header">
+                <span class="bar-label">Total Spent</span>
+                <span class="bar-value" id="dash-spent-value">₹ 0</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill red-fill" id="dash-spent-bar"></div></div>
+              <div class="bar-sub" id="dash-spent-sub">Personal: ₹ 0 · Subs: ₹ 0</div>
+            </div>
+          </div>
+
+          <!-- Last 7 days bar chart -->
+          <div class="panel-card">
+            <div id="last7-chart"></div>
+          </div>
+
+          <!-- ── SMART ALERTS PANEL ── -->
+          <div class="panel-card alerts-panel">
+            <div class="alerts-panel-bg"></div>
+            <div class="alerts-panel-header">
+              <div class="alerts-bell-wrap">
+                <span class="alerts-bell-icon">🔔</span>
+                <span class="alerts-panel-title">Smart Alerts</span>
+              </div>
+              <span class="alerts-count-badge hidden" id="alert-count-badge">0</span>
+            </div>
+            <div id="alerts-list-dash" class="alerts-list"></div>
+            <div class="subs-alert-footer">
+              <span class="bar-label">Monthly Subscriptions</span>
+              <span class="subs-total" id="subs-total-dash">₹ 0</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EXPENSES PAGE ──────────────────────────────── -->
+    <div id="page-expenses" class="page page-container hidden">
+      <!-- Date nav -->
+      <div class="date-nav">
+        <button class="date-btn ripple-btn" id="exp-prev">‹</button>
+        <div class="date-center">
+          <div class="date-nav-label red-label" id="exp-day-label">TODAY</div>
+          <div class="date-nav-title" id="exp-date-title"></div>
+        </div>
+        <button class="date-btn ripple-btn" id="exp-next">›</button>
+      </div>
+
+      <!-- Summary bar -->
+      <div class="summary-bar">
+        <div class="summary-item">
+          <div class="sbar-label">Entries</div>
+          <div class="sbar-val" id="exp-count">0</div>
+        </div>
+        <div class="vdivider"></div>
+        <div class="summary-item">
+          <div class="sbar-label">Total Spent</div>
+          <div class="sbar-val" id="exp-total">₹ 0</div>
+        </div>
+        <div class="vdivider"></div>
+        <div class="summary-item">
+          <div class="sbar-label">Largest</div>
+          <div class="sbar-val" id="exp-largest">₹ 0</div>
+        </div>
+        <div id="exp-donut-summary" style="display:flex;align-items:center;gap:12px;margin-left:auto;"></div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-card">
+        <div class="table-overflow">
+          <table class="exp-table" id="expenses-table">
+            <thead>
+              <tr>
+                <th style="min-width:200px">Description</th>
+                <th style="min-width:140px">Category</th>
+                <th style="width:130px;text-align:right">Amount (₹)</th>
+                <th style="width:44px"></th>
+              </tr>
+            </thead>
+            <tbody id="expenses-tbody"></tbody>
+          </table>
+        </div>
+        <div class="empty-state hidden" id="exp-empty">
+          <div class="empty-icon">📭</div>
+          <p>No expenses for this day.</p>
+          <p class="empty-sub">Click <strong style="color:#e74c3c">+ Add Expense</strong> to start.</p>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="action-row">
+        <button id="add-exp-btn" class="btn-primary ripple-btn">+ Add Expense</button>
+        <button id="clear-exp-btn" class="btn-ghost">Clear All</button>
+      </div>
+    </div>
+
+    <!-- ── SUBSCRIPTIONS PAGE ─────────────────────────── -->
+    <div id="page-subs" class="page page-container hidden">
+      <!-- Header -->
+      <div class="date-nav amber-date-nav">
+        <button class="date-btn amber-btn ripple-btn" id="subs-prev">‹</button>
+        <div class="date-center">
+          <div class="date-nav-label amber-label">SUBSCRIPTIONS</div>
+          <div class="date-nav-title" id="subs-month-title"></div>
+        </div>
+        <button class="date-btn amber-btn ripple-btn" id="subs-next">›</button>
+      </div>
+
+      <!-- Summary bar -->
+      <div class="summary-bar">
+        <div class="summary-item">
+          <div class="sbar-label">Active</div>
+          <div class="sbar-val amber-val" id="subs-active-count">0</div>
+        </div>
+        <div class="vdivider"></div>
+        <div class="summary-item">
+          <div class="sbar-label">Monthly Cost</div>
+          <div class="sbar-val amber-val" id="subs-monthly-total">₹ 0</div>
+        </div>
+        <div class="vdivider"></div>
+        <div class="summary-item">
+          <div class="sbar-label">Yearly Cost</div>
+          <div class="sbar-val amber-val" id="subs-yearly-total">₹ 0</div>
+        </div>
+      </div>
+
+      <!-- Table -->
+      <div class="table-card subs-table-card">
+        <div class="table-overflow">
+          <table class="exp-table subs-table" id="subs-table">
+            <thead>
+              <tr>
+                <th style="min-width:160px">Service Name</th>
+                <th style="min-width:130px">Category</th>
+                <th style="width:130px">Billing Cycle</th>
+                <th style="width:100px">Due Day</th>
+                <th style="width:120px;text-align:right">Amount (₹)</th>
+                <th style="width:110px">Status</th>
+                <th style="width:44px"></th>
+              </tr>
+            </thead>
+            <tbody id="subs-tbody"></tbody>
+          </table>
+        </div>
+        <div class="empty-state hidden" id="subs-empty">
+          <div class="empty-icon">📭</div>
+          <p>No subscriptions added yet.</p>
+          <p class="empty-sub">Click <strong style="color:#f59e0b">Add Subscription</strong> to start tracking.</p>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="action-row">
+        <button id="add-sub-btn" class="btn-amber ripple-btn">+ Add Subscription</button>
+        <button id="clear-sub-btn" class="btn-ghost">Clear All</button>
+      </div>
+    </div>
+
+    <!-- ── ANALYTICS PAGE ─────────────────────────────── -->
+    <div id="page-analytics" class="page page-container hidden">
+      <!-- Stat cards row -->
+      <div class="stat-grid" id="analytics-stat-grid"></div>
+
+      <!-- Charts row -->
+      <div class="charts-grid">
+        <div class="section-card">
+          <div class="section-card-label red-label">Monthly Spending — Last 6 Months</div>
+          <div id="analytics-monthly-chart"></div>
+          <div class="chart-footer" id="analytics-monthly-footer"></div>
+        </div>
+        <div class="section-card amber-card">
+          <div class="section-card-label amber-label">Subscription Trends</div>
+          <div id="analytics-subs-chart"></div>
+        </div>
+      </div>
+
+      <!-- Donut charts -->
+      <div class="charts-grid">
+        <div class="section-card">
+          <div class="section-card-label red-label" id="analytics-donut-title">Expense Breakdown</div>
+          <div id="analytics-exp-donut"></div>
+        </div>
+        <div class="section-card amber-card">
+          <div class="section-card-label amber-label">Subscription Breakdown</div>
+          <div id="analytics-sub-donut"></div>
+        </div>
+      </div>
+
+      <!-- Budget utilization -->
+      <div class="section-card hidden" id="analytics-budget-section">
+        <div class="section-card-label red-label">Budget Utilization</div>
+        <div class="budget-util-grid">
+          <div>
+            <div class="bar-header">
+              <span class="bar-label">Personal Spending</span>
+              <span class="bar-value" id="a-personal-pct">0%</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill red-fill" id="a-personal-bar"></div></div>
+            <div class="bar-sub" id="a-personal-sub"></div>
+          </div>
+          <div>
+            <div class="bar-header">
+              <span class="bar-label">Including Subscriptions</span>
+              <span class="bar-value" id="a-total-pct">0%</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill amber-fill" id="a-total-bar"></div></div>
+            <div class="bar-sub" id="a-total-sub"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ABOUT PAGE ─────────────────────────────────── -->
+    <div id="page-about" class="page page-container hidden">
+
+      <!-- Hero -->
+      <div class="about-hero">
+        <div class="about-logo-row">
+          <div class="brand-dot about-brand-dot"></div>
+          <span class="brand-name about-brand-title">Spendora</span>
+        </div>
+        <p class="about-tagline">Your personal finance command centre — built to keep your money decisions sharp.</p>
+      </div>
+
+      <!-- What is Spendora -->
+      <div class="about-section">
+        <div class="about-section-header">
+          <span class="about-section-icon">💡</span>
+          <h2 class="about-section-title">What is Spendora?</h2>
+        </div>
+        <p class="about-section-body">
+          Spendora is a fully client-side personal finance tracker that runs entirely in your browser — no servers, no cloud sync, no data leaving your device. Everything is stored locally, keeping your financial data 100% private. It gives you a real-time picture of where your money goes, whether it's a morning coffee or a yearly software subscription.
+        </p>
+      </div>
+
+      <!-- Feature cards grid -->
+      <div class="about-features-grid">
+
+        <div class="about-feature-card" style="--feat-color:#e74c3c">
+          <div class="feat-icon">📊</div>
+          <div class="feat-title">Dashboard</div>
+          <div class="feat-desc">A live overview of your monthly budget, total spending, and daily activity — including a calendar heatmap and smart stat cards that update the moment you add an expense.</div>
+        </div>
+
+        <div class="about-feature-card" style="--feat-color:#f59e0b">
+          <div class="feat-icon">💸</div>
+          <div class="feat-title">Expense Tracking</div>
+          <div class="feat-desc">Log daily expenses by category (Food, Transport, Health, Entertainment, and more) with inline editing. Navigate between any past date and instantly see what you spent and on what.</div>
+        </div>
+
+        <div class="about-feature-card" style="--feat-color:#8b5cf6">
+          <div class="feat-icon">🔁</div>
+          <div class="feat-title">Subscription Manager</div>
+          <div class="feat-desc">Track recurring charges — streaming, music, cloud, gaming, fitness — across monthly, yearly, quarterly, or weekly billing cycles. Know exactly what renews and when, so nothing catches you off guard.</div>
+        </div>
+
+        <div class="about-feature-card" style="--feat-color:#3b82f6">
+          <div class="feat-icon">📈</div>
+          <div class="feat-title">Analytics</div>
+          <div class="feat-desc">Bar charts for the last 6 months of spending, donut breakdowns by category, subscription cost trends, and budget utilisation bars — all rendered in-browser with animated SVG.</div>
+        </div>
+
+        <div class="about-feature-card" style="--feat-color:#10b981">
+          <div class="feat-icon">🔔</div>
+          <div class="feat-title">Smart Alerts</div>
+          <div class="feat-desc">An intelligent alert engine flags budget overruns, upcoming subscription renewals (within 5 days), high-subscription load, and daily spending spikes — colour-coded by urgency from critical to all-clear.</div>
+        </div>
+
+        <div class="about-feature-card" style="--feat-color:#ec4899">
+          <div class="feat-icon">🎯</div>
+          <div class="feat-title">Budget Goals</div>
+          <div class="feat-desc">Set a monthly spending limit and watch Spendora track every rupee against it in real time — with progress bars, percentage used, and a clear remaining balance at a glance.</div>
+        </div>
+
+      </div>
+
+      <!-- How it works -->
+      <div class="about-section">
+        <div class="about-section-header">
+          <span class="about-section-icon">⚙️</span>
+          <h2 class="about-section-title">How It Works</h2>
+        </div>
+        <div class="about-steps">
+          <div class="about-step">
+            <div class="step-num">01</div>
+            <div class="step-content">
+              <div class="step-title">Sign Up or Demo</div>
+              <div class="step-desc">Create a free account with your email and a password, or jump straight in with the demo credentials to explore the full interface.</div>
+            </div>
+          </div>
+          <div class="about-step-divider"></div>
+          <div class="about-step">
+            <div class="step-num">02</div>
+            <div class="step-content">
+              <div class="step-title">Set a Budget</div>
+              <div class="step-desc">Click "Set Budget" in the navbar and enter your monthly spending limit in ₹. Spendora will track everything against it automatically.</div>
+            </div>
+          </div>
+          <div class="about-step-divider"></div>
+          <div class="about-step">
+            <div class="step-num">03</div>
+            <div class="step-content">
+              <div class="step-title">Log Expenses Daily</div>
+              <div class="step-desc">Head to the Expenses page, pick a date, and add rows for what you spent. Categories and amounts update your dashboard in real time.</div>
+            </div>
+          </div>
+          <div class="about-step-divider"></div>
+          <div class="about-step">
+            <div class="step-num">04</div>
+            <div class="step-content">
+              <div class="step-title">Add Subscriptions</div>
+              <div class="step-desc">Enter your recurring services in the Subscriptions page. Spendora tracks renewal dates and includes them in your monthly cost calculations.</div>
+            </div>
+          </div>
+          <div class="about-step-divider"></div>
+          <div class="about-step">
+            <div class="step-num">05</div>
+            <div class="step-content">
+              <div class="step-title">Review Analytics</div>
+              <div class="step-desc">Use the Analytics page to spot trends, understand category breakdowns, and compare months — so you can make smarter financial decisions going forward.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Privacy note -->
+      <div class="about-privacy-card">
+        <div class="about-privacy-icon">🔒</div>
+        <div>
+          <div class="about-privacy-title">Your Data Stays With You</div>
+          <div class="about-privacy-body">Spendora stores everything in your browser's <span class="mono-text">localStorage</span>. No data is ever sent to a server, no accounts are stored remotely, and no third-party analytics track your usage. Clear your browser storage and everything is gone — you're always in full control.</div>
+        </div>
+      </div>
+
+      <!-- Credits -->
+      <div class="about-credits">
+        <div class="about-credits-divider"></div>
+        <div class="about-credits-inner">
+          <div class="about-credits-logo">
+            <div class="brand-dot" style="width:8px;height:8px;"></div>
+            <span class="brand-name" style="font-size:1rem;letter-spacing:4px;">Spendora</span>
+          </div>
+          <p class="about-credits-line">Designed &amp; developed with ❤️ by</p>
+          <p class="about-creator">Reyansh Chopra</p>
+          <p class="about-credits-sub">Personal Finance Tracker · Built with Vanilla JS · No frameworks, no servers, no nonsense.</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div><!-- /#app -->
+
+  <!-- ── BUDGET MODAL ───────────────────────────────────── -->
+  <div id="budget-modal" class="modal-overlay hidden">
+    <div class="modal-card" id="budget-modal-card">
+      <button class="modal-close" id="budget-modal-close">✕</button>
+      <div class="modal-brand">
+        <div class="brand-dot"></div>
+        <h2 class="modal-title">Set Your Budget</h2>
+      </div>
+      <p class="modal-subtitle">Monthly Spending Limit</p>
+      <div class="budget-input-wrap">
+        <span class="budget-rupee">₹</span>
+        <input type="number" id="budget-input" placeholder="Enter your budget" class="budget-input"/>
+        <button id="budget-confirm-btn" class="budget-confirm">✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TOAST CONTAINER ────────────────────────────────── -->
+  <div id="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
